@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI Alphanumeric OCR</title>
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; text-align: center; background: #f0f2f5; margin: 0; padding: 50px 20px; }
+        .container { background: white; max-width: 500px; margin: auto; padding: 40px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); }
+        h2 { color: #1a1a1a; margin-top: 0; }
+        p { color: #666; margin-bottom: 30px; }
+        input[type="file"] { display: none; }
+        .file-label { display: inline-block; background: #4f46e5; color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.2s; }
+        .file-label:hover { background: #4338ca; }
+        button { background: #10b981; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 20px; transition: background 0.2s; width: 100%; }
+        button:hover { background: #059669; }
+        #fileName { margin-top: 10px; font-size: 14px; color: #888; font-style: italic; }
+        #result { margin-top: 30px; padding: 15px; border-radius: 8px; font-size: 22px; font-weight: 700; color: #4f46e5; min-height: 30px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>🔤 FastAPI Alphanumeric OCR</h2>
+        <p>Upload a cropped picture of a handwritten word or code sequence to evaluate.</p>
+        
+        <label for="imageInput" class="file-label">Choose Image File</label>
+        <input type="file" id="imageInput" accept="image/*" onchange="displayFilename()">
+        <div id="fileName"></div>
+        
+        <button onclick="sendToFastAPI()">Scan Word Matrix</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function displayFilename() {
+            const input = document.getElementById('imageInput');
+            const nameDiv = document.getElementById('fileName');
+            nameDiv.innerText = input.files.length > 0 ? "Selected: " + input.files[0].name : "";
+        }
+
+        async function sendToFastAPI() {
+            const fileInput = document.getElementById('imageInput');
+            const resultDiv = document.getElementById('result');
+            
+            if (fileInput.files.length === 0) {
+                alert('Please upload an image first!');
+                return;
+            }
+
+            resultDiv.innerText = "Processing through CNN layers...";
+            resultDiv.style.color = "#666";
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                resultDiv.innerText = "Prediction: " + data.prediction;
+                resultDiv.style.color = "#4f46e5";
+            } catch (error) {
+                resultDiv.innerText = "Error contacting server.";
+                resultDiv.style.color = "#dc2626";
+            }
+        }
+    </script>
+</body>
+</html>
